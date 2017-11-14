@@ -67,6 +67,7 @@ module RspecApiDocumentation
     end
 
     def remap_headers(requests, key, headers_to_include)
+      requests = requests || []
       return requests unless headers_to_include
       requests.each.with_index do |request_hash, index|
         next unless request_hash.key?(key)
