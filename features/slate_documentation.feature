@@ -49,7 +49,7 @@ Feature: Generate Slate documentation from test examples
       RspecApiDocumentation.configure do |config|
         config.app = App
         config.api_name = "Example API"
-        config.api_explanation = "Description"
+        config.api_explanation = "An explanation of the API"
         config.format = :slate
         config.curl_host = 'http://localhost:3000'
         config.request_headers_to_include = %w[Content-Type Host]
@@ -57,6 +57,7 @@ Feature: Generate Slate documentation from test examples
       end
 
       resource 'Orders' do
+        explanation "An Order represents an amount of money to be paid"
         get '/orders' do
           response_field :page, "Current page"
 
@@ -152,29 +153,35 @@ Feature: Generate Slate documentation from test examples
 
     ### Request
 
+    ```shell
+    curl -g "http://localhost:3000/orders" -X GET \
+    	-H "Host: example.org" \
+    	-H "Cookie: "
+    ```
+
     #### Endpoint
+
+    `GET /orders`
 
     ```plaintext
     GET /orders
     Host: example.org
     ```
 
-    `GET /orders`
-
     #### Parameters
+
 
 
     None known.
 
-
     ### Response
+
 
     ```plaintext
     Content-Type: application/json
     Content-Length: 137
     200 OK
     ```
-
 
     ```json
     {
@@ -195,39 +202,37 @@ Feature: Generate Slate documentation from test examples
     ```
 
 
-
     #### Fields
 
     | Name       | Description         |
     |:-----------|:--------------------|
     | page | Current page |
-
-
-    ```shell
-    curl -g "http://localhost:3000/orders" -X GET \
-    	-H "Host: example.org" \
-    	-H "Cookie: "
     """
 
   Scenario: Example 'Creating an order' docs should look like we expect
     Then the file "doc/api/index.html.md" should contain:
     """
-    # Orders
-
     ## Creating an order
 
 
     ### Request
+    
+    ```shell
+    curl "http://localhost:3000/orders" -d 'name=Order+3&amount=33.0' -X POST \
+    	-H "Host: example.org" \
+    	-H "Content-Type: application/x-www-form-urlencoded" \
+    	-H "Cookie: "
+    ```
 
     #### Endpoint
+
+    `POST /orders`
 
     ```plaintext
     POST /orders
     Host: example.org
     Content-Type: application/x-www-form-urlencoded
     ```
-
-    `POST /orders`
 
     #### Parameters
 
@@ -236,16 +241,14 @@ Feature: Generate Slate documentation from test examples
     name=Order+3&amount=33.0
     ```
 
-
     | Name | Description |
     |:-----|:------------|
     | name *required* | Name of order |
     | amount *required* | Amount paid |
     | description  | Some comments on the order |
 
-
-
     ### Response
+
 
     ```plaintext
     Content-Type: text/html;charset=utf-8
@@ -255,13 +258,6 @@ Feature: Generate Slate documentation from test examples
 
 
 
-
-    ```shell
-    curl "http://localhost:3000/orders" -d 'name=Order+3&amount=33.0' -X POST \
-    	-H "Host: example.org" \
-    	-H "Content-Type: application/x-www-form-urlencoded" \
-    	-H "Cookie: "
-    ```
     """
 
   Scenario: Example 'Deleting an order' docs should be created
@@ -292,4 +288,10 @@ Feature: Generate Slate documentation from test examples
     Then the file "doc/api/index.html.md" should contain:
     """
     ## Getting welcome message
+    """
+
+  Scenario: API explanation should be included
+    Then the file "doc/api/index.html.md" should contain:
+    """
+    An explanation of the API
     """

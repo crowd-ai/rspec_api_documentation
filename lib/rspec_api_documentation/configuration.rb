@@ -51,6 +51,14 @@ module RspecApiDocumentation
       end
     end
 
+    add_setting :configurations_dir, :default => lambda { |config|
+      if defined?(Rails)
+        Rails.root.join('doc', 'configurations', 'api')
+      else
+        Pathname.new('doc/configurations/api')
+      end
+    }
+
     add_setting :docs_dir, :default => lambda { |config|
       if defined?(Rails)
         Rails.root.join("doc", "api")
@@ -110,7 +118,7 @@ module RspecApiDocumentation
     # See RspecApiDocumentation::DSL::Endpoint#do_request
     add_setting :response_body_formatter, default: Proc.new { |_, _|
       Proc.new do |content_type, response_body|
-        if content_type =~ /application\/json/
+        if content_type =~ /application\/.*json/
           JSON.pretty_generate(JSON.parse(response_body))
         else
           response_body
@@ -119,6 +127,8 @@ module RspecApiDocumentation
     }
 
     def client_method=(new_client_method)
+      return if new_client_method == client_method
+
       RspecApiDocumentation::DSL::Resource.module_eval <<-RUBY
         alias :#{new_client_method} #{client_method}
         undef #{client_method}

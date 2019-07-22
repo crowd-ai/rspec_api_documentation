@@ -13,11 +13,37 @@ module RspecApiDocumentation
         end
 
         def call
-          parameters = example.metadata.fetch(:parameters, {}).inject({}) do |hash, param|
+          set_param = -> hash, param {
             SetParam.new(self, hash, param).call
+          }
+
+          example.metadata.fetch(:parameters, {}).inject({}, &set_param)
+            .deep_merge(
+              example.metadata.fetch(:attributes, {}).inject({}, &set_param)
+            ).deep_merge(extra_params)
+        end
+
+        def extended
+          example.metadata.fetch(:parameters, {}).map do |param|
+            p = Marshal.load(Marshal.dump(param))
+            p[:value] = SetParam.new(self, nil, p).value
+            unless p[:value]
+              cur = extra_params
+              [*p[:scope]].each { |scope| cur = cur && (cur[scope.to_sym] || cur[scope.to_s]) }
+
+              # When the current parameter is an array of objects, we use the
+              # first one for the value and add a scope indicator. The
+              # resulting parameter name looks like +props[pictures][][id]+
+              # this.
+              if cur.is_a?(Array) && cur.first.is_a?(Hash)
+                cur = cur.first
+                param[:scope] << ''
+              end
+
+              p[:value] = cur && (cur[p[:name].to_s] || cur[p[:name].to_sym])
+            end
+            p
           end
-          parameters.deep_merge!(extra_params)
-          parameters
         end
 
       private

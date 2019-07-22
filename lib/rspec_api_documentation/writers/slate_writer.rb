@@ -21,17 +21,11 @@ module RspecApiDocumentation
       def write
         File.open(configuration.docs_dir.join("#{FILENAME}.#{extension}"), 'w+') do |file|
 
-          file.write %Q{---\n}
-          file.write %Q{title: "#{configuration.api_name}"\n}
-          file.write %Q{language_tabs:\n}
-          file.write %Q{  - json: JSON\n}
-          file.write %Q{  - shell: cURL\n}
-          file.write %Q{---\n\n}
+          file.write markup_index_class.new(index, configuration).render
 
           IndexHelper.sections(index.examples, @configuration).each do |section|
-
             file.write "# #{section[:resource_name]}\n\n"
-            section[:examples].sort_by!(&:description) unless configuration.keep_source_order
+            file.write "#{section[:resource_explanation]}\n\n"
 
             section[:examples].each do |example|
               markup_example = markup_example_class.new(example, configuration)

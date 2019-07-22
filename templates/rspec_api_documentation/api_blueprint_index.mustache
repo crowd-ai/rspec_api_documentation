@@ -1,4 +1,5 @@
-FORMAT: A1
+FORMAT: 1A
+# {{ api_name }}
 {{# sections }}
 
 # Group {{ resource_name }}
@@ -26,6 +27,18 @@ explanation: {{ explanation }}
 + Parameters
 {{# parameters }}
   + {{ name }}{{# example }}: {{ example }}{{/ example }}{{# properties_description }} ({{ properties_description }}){{/ properties_description }}{{# description }} - {{ description }}{{/ description }}
+      {{# has_default?}}
+      + Default: `{{default}}`
+      {{/ has_default?}}
+      {{# has_enum?}}
+      + Members
+        {{# enum}}
+          + `{{.}}`
+        {{/ enum}}
+      {{/ has_enum?}}
+  {{# annotations }}
+      {{ . }}
+  {{/ annotations }}
 {{/ parameters }}
 {{/ has_parameters? }}
 {{# has_attributes? }}
@@ -33,6 +46,18 @@ explanation: {{ explanation }}
 + Attributes (object)
 {{# attributes }}
   + {{ name }}{{# example }}: {{ example }}{{/ example }}{{# properties_description }} ({{ properties_description }}){{/ properties_description }}{{# description }} - {{ description }}{{/ description }}
+      {{# has_default?}}
+      + Default: `{{default}}`
+      {{/ has_default?}}
+      {{# has_enum?}}
+      + Members
+        {{# enum}}
+          + `{{.}}`
+        {{/ enum}}
+      {{/ has_enum?}}
+  {{# annotations }}
+      {{ . }}
+  {{/ annotations }}
 {{/ attributes }}
 {{/ has_attributes? }}
 {{# http_methods }}
@@ -48,13 +73,13 @@ explanation: {{ explanation }}
 
     + Headers
 
-        {{{ request_headers_text }}}
+            {{{ request_headers_text }}}
 {{/ request_headers_text }}
 {{# request_body }}
 
     + Body
 
-        {{{ request_body }}}
+            {{{ request_body }}}
 {{/ request_body }}
 {{# has_response? }}
 
@@ -64,13 +89,13 @@ explanation: {{ explanation }}
 
     + Headers
 
-        {{{ response_headers_text }}}
+            {{{ response_headers_text }}}
 {{/ response_headers_text }}
 {{# response_body }}
 
     + Body
 
-        {{{ response_body }}}
+            {{{ response_body }}}
 {{/ response_body }}
 {{/ requests }}
 {{/ examples }}

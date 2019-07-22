@@ -8,7 +8,7 @@ module RspecApiDocumentation
 
       def sections
         super.map do |section|
-          routes = section[:examples].group_by { |e| "#{e.route_uri}#{e.route_optionals}" }.map do |route, examples|
+          routes = section[:examples].group_by { |e| "#{e.route_uri}#{e.route_optionals}#{e.route_name}" }.map do |route, examples|
             attrs  = fields(:attributes, examples)
             params = fields(:parameters, examples)
 
@@ -23,7 +23,7 @@ module RspecApiDocumentation
             {
               "has_attributes?".to_sym => attrs.size > 0,
               "has_parameters?".to_sym => params.size > 0,
-              route: route,
+              route: format_route(examples[0]),
               route_name: examples[0][:route_name],
               attributes: attrs,
               parameters: params,
@@ -45,6 +45,17 @@ module RspecApiDocumentation
 
       private
 
+      # APIB follows the RFC 6570 to format URI templates.
+      # According to it, simple string expansion (used to perform variable
+      # expansion) should be represented by `{var}` and not by `/:var`
+      # For example `/posts/:id` should become `/posts/{id}`
+      # cf. https://github.com/apiaryio/api-blueprint/blob/format-1A/API%20Blueprint%20Specification.md#431-resource-section
+      # cf. https://tools.ietf.org/html/rfc6570#section-3.2.6
+      def format_route(example)
+        route_uri = example[:route_uri].gsub(/:(.*?)([.\/?{]|$)/, '{\1}\2')
+        "#{route_uri}#{example[:route_optionals]}"
+      end
+
       # APIB has both `parameters` and `attributes`. This generates a hash
       # with all of its properties, like name, description, required.
       #   {
@@ -63,13 +74,22 @@ module RspecApiDocumentation
           .uniq { |property| property[:name] }
           .map do |property|
             properties = []
-            properties << "required"      if property[:required]
+            if property[:required] == true
+              properties << 'required'
+            else
+              properties << 'optional'
+            end
             properties << property[:type] if property[:type]
             if properties.count > 0
               property[:properties_description] = properties.join(", ")
             else
               property[:properties_description] = nil
             end
+
+            property[:has_default?] = true if property[:default]
+            property[:has_enum?] = true if property[:enum]
+
+            property[:annotations] = property[:annotation].lines.map(&:chomp) if property[:annotation]
 
             property[:description] = nil if description_blank?(property)
             property

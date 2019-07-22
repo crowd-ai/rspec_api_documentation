@@ -15,6 +15,10 @@ module RspecApiDocumentation
           hash.deep_merge build_param_hash(key_scope || [key])
         end
 
+        def value
+          example_group.send(method_name) if method_name
+        end
+
       private
 
         attr_reader :parent, :hash, :param
@@ -36,6 +40,10 @@ module RspecApiDocumentation
           param[:method]
         end
 
+        def set_value
+          param[:value]
+        end
+
         def path_name
           scoped_key || key
         end
@@ -51,11 +59,14 @@ module RspecApiDocumentation
             scoped_key
           elsif key && example_group.respond_to?(key)
             key
+          elsif key && set_value
+            key
           end
         end
 
         def build_param_hash(keys)
-          value = keys[1] ? build_param_hash(keys[1..-1]) : example_group.send(method_name)
+          value = param[:value] if param.has_key?(:value)
+          value ||= keys[1] ? build_param_hash(keys[1..-1]) : example_group.send(method_name)
           { keys[0].to_s => value }
         end
       end
